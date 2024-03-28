@@ -18,14 +18,11 @@ class Joint_bilateral_filter(object):
         padded_guidance = padded_guidance.astype(np.float64) / 255.0
         guidance = guidance.astype(np.float64) / 255.0
 
-        spatial_kernel = np.zeros((self.wndw_size, self.wndw_size))
-        for x in range(self.wndw_size):
-            for y in range(self.wndw_size):
-                spatial_kernel[x, y] = np.exp(-((x - self.wndw_size//2)**2 + (y - self.wndw_size//2)**2) / (2 * self.sigma_s**2))
-
+        spatial_component = -((np.arange(self.wndw_size) - self.wndw_size//2)**2)[np.newaxis] - ((np.arange(self.wndw_size) - self.wndw_size//2)**2)[:, np.newaxis]
+        spatial_component = spatial_component.astype(float)
+        spatial_component /= 2 * self.sigma_s**2
 
         output = np.zeros_like(img)
-
 
         for i in range(img.shape[0]):
             for j in range(img.shape[1]):
@@ -33,13 +30,15 @@ class Joint_bilateral_filter(object):
                 window_guidance = padded_guidance[i:i+self.wndw_size, j:j+self.wndw_size]
 
                 if guidance.ndim == 3:
-                    range_kernel = np.exp(-((window_guidance - guidance[i,j])**2).sum(axis=2) /  (2*self.sigma_r**2))
+                    range_component = -((window_guidance - guidance[i,j])**2).sum(axis=2) /  (2*self.sigma_r**2)
                 else:
-                    range_kernel = np.exp(-((window_guidance - guidance[i,j])**2) / (2*self.sigma_r**2))
+                    range_component = -((window_guidance - guidance[i,j])**2) / (2*self.sigma_r**2)
 
-                jbf = spatial_kernel * range_kernel
+                # Combine spatial and range components
+                jbf = np.exp(spatial_component + range_component)
 
                 output[i, j, :] = np.sum(window_img * jbf[:, :, np.newaxis], axis=(0, 1)) / np.sum(jbf)
+
 
 
         return np.clip(output, 0, 255).astype(np.uint8)
