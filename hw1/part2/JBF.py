@@ -42,6 +42,3 @@ class Joint_bilateral_filter(object):
 
 
         return np.clip(output, 0, 255).astype(np.uint8)
-    
-
-    
