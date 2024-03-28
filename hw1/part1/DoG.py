@@ -25,7 +25,7 @@ class Difference_of_Gaussian(object):
                     gaussian_images.append(cv2.GaussianBlur(image, (0, 0), self.sigma**j))
 
         for i in range(len(gaussian_images)):
-            cv2.imwrite('result/gaussian_images_'+str(i)+'.png', gaussian_images[i])
+            cv2.imwrite('output/gaussian_images_'+str(i)+'.png', gaussian_images[i])
         
         # Step 2: Subtract 2 neighbor images to get DoG images (4 images per octave, 2 octave in total)
         # - Function: cv2.subtract(second_image, first_image)
@@ -34,7 +34,7 @@ class Difference_of_Gaussian(object):
             for j in range(self.num_DoG_images_per_octave):
                 dog_images.append(cv2.subtract(gaussian_images[i*self.num_guassian_images_per_octave+j+1], gaussian_images[i*self.num_guassian_images_per_octave+j]))
         for i in range(len(dog_images)):
-            cv2.imwrite('result/dog_images_'+str(i)+'.png', dog_images[i])
+            cv2.imwrite('output/dog_images_'+str(i)+'.png', dog_images[i])
 
         # Step 3: Thresholding the value and Find local extremum (local maximun and local minimum)
         #         Keep local extremum as a keypoint

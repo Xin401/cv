@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import argparse
 from DoG import Difference_of_Gaussian
+import os
 
 
 def plot_keypoints(img_gray, keypoints, save_path):
@@ -21,12 +22,14 @@ def main():
     img = cv2.imread(args.image_path, 0).astype(np.float64)
 
     ### TODO ###
+    if not os.path.exists('output'):
+        os.mkdir("output")
     DoG = Difference_of_Gaussian(args.threshold)
     keypoints_gt = np.load(args.gt_path)
     keypoints = DoG.get_keypoints(img)
-    plot_keypoints(img, keypoints_gt, 'result/keypoint_gt.png')
-    plot_keypoints(img, keypoints, 'result/keypoint.png')
-    np.savetxt('result/keypoint.txt', keypoints)
-    np.savetxt('result/keypoint_gt.txt', keypoints_gt)
+    plot_keypoints(img, keypoints_gt, 'output/keypoint_gt.png')
+    plot_keypoints(img, keypoints, 'output/keypoint.png')
+    np.savetxt('output/keypoint.txt', keypoints)
+    np.savetxt('output/keypoint_gt.txt', keypoints_gt)
 if __name__ == '__main__':
     main()
