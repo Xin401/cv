@@ -40,8 +40,34 @@ def get_tiny_images(img_paths):
     #    2. flatten and normalize the resized image.                #
     #################################################################
 
-    tiny_img_feats = []
+    resolution = 16
+    tiny_img_feats = [] 
 
+    for img_path in tqdm(img_paths):
+        img = Image.open(img_path)
+
+        # Get dimensions of image
+        width, height = img.size
+
+        #Crop the center of the image
+        min_dim = min(width, height)
+        left = (width - min_dim) / 2
+        right = (width + min_dim) / 2
+        top = (height - min_dim) / 2
+        bottom = (height + min_dim) / 2
+        img = img.crop((left, top, right, bottom))
+
+        #Resize the image
+        img = img.resize((resolution, resolution))
+
+        #Flatten and normalize the image
+        img = np.array(img)
+        # 變成一維的陣列
+        img = img.flatten()
+        img = img / np.linalg.norm(img)
+        tiny_img_feats.append(img)
+
+    tiny_img_feats = np.array(tiny_img_feats)
     #################################################################
     #                        END OF YOUR CODE                       #
     #################################################################
