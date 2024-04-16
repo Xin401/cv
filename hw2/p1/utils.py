@@ -11,7 +11,7 @@ CAT = ['Kitchen', 'Store', 'Bedroom', 'LivingRoom', 'Office',
 
 CAT2ID = {v: k for k, v in enumerate(CAT)}
 x = 2
-fast = False
+fast = True
 
 ########################################
 ###### FEATURE UTILS              ######
@@ -130,9 +130,13 @@ def build_vocabulary(img_paths, vocab_size=400):
     ##################################################################################
     features = []
     for img_path in tqdm(img_paths):
+        # if random.random() < 0.3:
+        #     continue
         img = Image.open(img_path)
         img = np.array(img)
         frames, descriptors = dsift(img, step=[x,x], fast=fast)
+        random_indices = np.random.choice(descriptors.shape[0], size=int(descriptors.shape[0]*0.7), replace=False)
+        descriptors = descriptors[random_indices]
         features.append(descriptors.astype(np.float32))
     print("running kmeans with vocab size: ", vocab_size)
     vocab = kmeans(np.concatenate(features, axis=0), vocab_size)
@@ -252,7 +256,7 @@ def nearest_neighbor_classify(train_img_feats, train_labels, test_img_feats):
     distances = cdist(test_img_feats, train_img_feats, metric='minkowski', p=1)
 
     # For each testing feature, select its k-nearest training features
-    k = 3
+    k = 5
     nearest_indices = np.argsort(distances, axis=1)[:, :k]
 
     # Get these k training features' label id and vote for the final id
