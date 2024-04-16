@@ -10,6 +10,8 @@ CAT = ['Kitchen', 'Store', 'Bedroom', 'LivingRoom', 'Office',
        'Highway', 'OpenCountry', 'Coast', 'Mountain', 'Forest']
 
 CAT2ID = {v: k for k, v in enumerate(CAT)}
+x = 2
+fast = False
 
 ########################################
 ###### FEATURE UTILS              ######
@@ -126,9 +128,16 @@ def build_vocabulary(img_paths, vocab_size=400):
     ##################################################################################
     #                                END OF YOUR CODE                                #
     ##################################################################################
-    
-    # return vocab
-    return None
+    features = []
+    for img_path in tqdm(img_paths):
+        img = Image.open(img_path)
+        img = np.array(img)
+        frames, descriptors = dsift(img, step=[x,x], fast=fast)
+        features.append(descriptors.astype(np.float32))
+    print("running kmeans with vocab size: ", vocab_size)
+    vocab = kmeans(np.concatenate(features, axis=0), vocab_size)
+    return vocab
+    # return None
 
 ###### Step 1-b-2
 def get_bags_of_sifts(img_paths, vocab):
@@ -167,6 +176,16 @@ def get_bags_of_sifts(img_paths, vocab):
     ############################################################################
 
     img_feats = []
+
+    for img_path in tqdm(img_paths):
+        img = Image.open(img_path)
+        img = np.array(img)
+        frames, descriptors = dsift(img, step=[x, x], fast=fast)
+        distances = cdist(descriptors, vocab)
+        nearest_cluster = np.argmin(distances, axis=1)
+        histogram, bin_edges = np.histogram(nearest_cluster, bins=len(vocab))
+        histogram = np.array(histogram) / len(descriptors)
+        img_feats.append(histogram)
 
     ############################################################################
     #                                END OF YOUR CODE                          #
@@ -225,7 +244,23 @@ def nearest_neighbor_classify(train_img_feats, train_labels, test_img_feats):
     #      work better, or you can also try different metrics for cdist()     #
     ###########################################################################
 
-    test_predicts = []
+    ID2CAT = {v: k for k, v in CAT2ID.items()}
+     # Convert train_labels to IDs
+    train_labels_id = np.array([CAT2ID[label] for label in train_labels])
+
+    # Calculate the distance between training and testing features
+    distances = cdist(test_img_feats, train_img_feats, metric='minkowski', p=1)
+
+    # For each testing feature, select its k-nearest training features
+    k = 3
+    nearest_indices = np.argsort(distances, axis=1)[:, :k]
+
+    # Get these k training features' label id and vote for the final id
+    nearest_labels = train_labels_id[nearest_indices]
+    votes = np.apply_along_axis(lambda x: np.bincount(x).argmax(), axis=1, arr=nearest_labels)
+
+    # Convert final id's type back to string
+    test_predicts = [ID2CAT[vote] for vote in votes]
 
     ###########################################################################
     #                               END OF YOUR CODE                          #
