@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime
 
 import torch
+import torch.backends
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
@@ -34,7 +35,33 @@ def plot_learning_curve(logfile_dir, result_lists):
     # is not fixed.                                                #
     ################################################################
     
-    pass
+    plt.figure()
+    plt.plot([t_acc.cpu() for t_acc in result_lists['train_acc']], label='train_acc')
+    plt.xlabel('Epoch')
+    plt.ylabel('Train Accuracy')
+    plt.legend(loc='lower right')
+    plt.savefig(os.path.join(logfile_dir, 'train_accuracy.png'))
+
+    plt.figure()
+    plt.plot(result_lists['train_loss'], label='train_loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(loc='upper right')
+    plt.savefig(os.path.join(logfile_dir, 'train_loss.png'))
+    
+    plt.figure()
+    plt.plot([v_acc.cpu() for v_acc in result_lists['val_acc']], label='val_acc')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(loc='lower right')
+    plt.savefig(os.path.join(logfile_dir, 'val_accuracy.png'))
+
+    plt.figure()
+    plt.plot(result_lists['val_loss'], label='val_loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(loc='upper right')
+    plt.savefig(os.path.join(logfile_dir, 'val_loss.png'))
 
 def train(model, train_loader, val_loader, logfile_dir, model_save_dir, criterion, optimizer, scheduler, device):
 
@@ -89,6 +116,12 @@ def train(model, train_loader, val_loader, logfile_dir, model_save_dir, criterio
             # accuracy and loss.                                        #
             #############################################################
             
+            for batch, data in enumerate(val_loader):
+                images, labels = data['images'].to(device), data['labels'].to(device)
+                pred = model(images)
+                loss = criterion(pred, labels)
+                val_correct += torch.sum(torch.argmax(pred, dim=1) == labels)
+                val_loss += loss.item()
             ######################### TODO End ##########################
 
         # Print validation result
@@ -144,7 +177,8 @@ def main():
     set_seed(9527)
 
     # Check if GPU is available, otherwise CPU is used
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
     # device = torch.device('cpu')
     print('Device:', device)
 

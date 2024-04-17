@@ -22,7 +22,8 @@ def main():
     output_path = args.output_path
 
     # Check if GPU is available, otherwise CPU is used
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
     print('Device:', device)
 
     ##### MODEL #####
@@ -57,7 +58,11 @@ def main():
         # You don't have to calculate accuracy and loss since you   #
         # don't have labels.                                        #
         #############################################################
-        
+        for batch, data in enumerate(test_loader):
+                images = data['images'].to(device)
+                pred = model(images)
+                batch_predictions = torch.argmax(pred, dim=1)
+                predictions.extend(batch_predictions.cpu().tolist())
         ######################### TODO End ##########################
 
     test_time = time.time() - test_start_time

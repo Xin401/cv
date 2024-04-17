@@ -11,8 +11,18 @@ class MyNet(nn.Module):
         # Define your CNN model architecture. Note that the first      #
         # input channel is 3, and the output dimension is 10 (class).  #
         ################################################################
-
-        pass
+        self.cnn = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Flatten(),
+            nn.Linear(128 * 8 * 8, 64),
+            nn.ReLU(),
+            nn.Linear(64, 10)
+        )
 
     def forward(self, x):
 
@@ -20,8 +30,7 @@ class MyNet(nn.Module):
         # TODO:                                  #
         # Define the forward path of your model. #
         ##########################################
-
-        pass
+        return self.cnn(x)
     
 class ResNet18(nn.Module):
     def __init__(self):
@@ -34,10 +43,12 @@ class ResNet18(nn.Module):
 
         # (batch_size, 3, 32, 32)
         self.resnet = models.resnet18(pretrained=True)
+        self.resnet.conv1 = nn.Conv2d(3,64,kernel_size=3,stride=1,padding=1,bias=False)
+        self.resnet.maxpool = Identity()
         # (batch_size, 512)
         self.resnet.fc = nn.Linear(self.resnet.fc.in_features, 10)
         # (batch_size, 10)
-
+        
         #######################################################################
         # TODO (optinal):                                                     #
         # Some ideas to improve accuracy if you can't pass the strong         #
