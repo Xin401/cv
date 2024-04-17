@@ -1,0 +1,7 @@
+Experiment Name = adam_da
+Model Type      = resnet18
+Num epochs      = 20
+Batch size      = 32
+Use adam        = True
+Learning rate   = 0.0001
+Scheduler step  = [10, 32, 45]
