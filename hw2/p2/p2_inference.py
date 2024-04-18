@@ -22,8 +22,8 @@ def main():
     output_path = args.output_path
 
     # Check if GPU is available, otherwise CPU is used
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
     print('Device:', device)
 
     ##### MODEL #####

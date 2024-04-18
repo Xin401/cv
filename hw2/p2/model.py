@@ -74,4 +74,7 @@ class Identity(nn.Module):
     
 if __name__ == '__main__':
     model = ResNet18()
+    # model = MyNet()
+    parameters = sum(p.numel() for p in model.parameters())
+    print(f'Number of parameters: {parameters}')
     print(model)
